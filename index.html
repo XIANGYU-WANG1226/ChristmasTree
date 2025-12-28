@@ -3,47 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Luxury Golden Christmas (Cinematic Harmony)</title>
+    <title>Ultimate Golden Christmas (Final Fix)</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Times New Roman', serif; user-select: none; touch-action: none; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
         .header { text-align: center; margin-top: 10px; }
-        /* 标题光晕也调柔和一点 */
-        h1 { margin: 0; font-size: 2.5rem; letter-spacing: 5px; color: #FFE082; text-shadow: 0 0 15px #B8860B; font-weight: 100; opacity: 0.9; }
-        .controls-info { background: rgba(30, 25, 10, 0.6); backdrop-filter: blur(10px); padding: 20px; border: 1px solid rgba(255, 215, 0, 0.3); color: #FFE082; pointer-events: auto; max-width: 320px; font-size: 0.9rem; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-        .controls-info h3 { margin: 0 0 15px 0; border-bottom: 1px solid #B8860B; padding-bottom: 5px; letter-spacing: 2px;}
-        .btn { display: inline-block; margin-top: 15px; width: 100%; box-sizing: border-box; background: linear-gradient(45deg, #B8860B, #8B4500); border: 1px solid #FFE082; color: #fff; padding: 12px 0; text-align: center; cursor: pointer; font-weight: bold; pointer-events: auto; text-transform: uppercase; box-shadow: 0 0 15px rgba(184, 134, 11, 0.3); transition: 0.3s;}
-        .btn:hover { background: #FFD700; color: #000; box-shadow: 0 0 30px #B8860B; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1005, #000000); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #B8860B; transition: opacity 0.5s; }
-        #loading-text { font-size: 2.5rem; font-family:serif; text-shadow:0 0 20px #B8860B; margin-bottom: 20px; text-align: center; }
-        #loading-sub { color:#886644; letter-spacing: 2px; text-align: center; padding: 0 20px; font-size: 0.9rem; }
-        #error-log { color: #cc5555; font-size: 0.8rem; margin-top: 30px; max-width: 90%; text-align: center; display: none; border: 1px solid #500; padding: 15px; background: rgba(0,0,0,0.9); border-radius: 8px; }
-        #start-btn { margin-top: 30px; padding: 15px 50px; font-size: 1.5rem; display: none; cursor: pointer; background: transparent; color: #FFD700; border: 1px solid #FFD700; letter-spacing: 5px; transition: 0.5s; font-weight: 100; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); border-radius: 2px; }
-        #start-btn:hover { background: #FFD700; color: #000; box-shadow: 0 0 40px #FFD700; }
+        h1 { margin: 0; font-size: 2.5rem; letter-spacing: 5px; color: #FFD700; text-shadow: 0 0 20px #FFAA00, 0 0 40px #FF4500; font-weight: 100; }
+        .controls-info { background: rgba(20, 10, 0, 0.8); backdrop-filter: blur(10px); padding: 20px; border: 1px solid rgba(255, 215, 0, 0.5); color: #FFD700; pointer-events: auto; max-width: 320px; font-size: 0.9rem; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
+        .controls-info h3 { margin: 0 0 15px 0; border-bottom: 1px solid #FFD700; padding-bottom: 5px; letter-spacing: 2px;}
+        .btn { display: inline-block; margin-top: 15px; width: 100%; box-sizing: border-box; background: linear-gradient(45deg, #FFD700, #FFA500); border: 1px solid #FFF; color: #000; padding: 12px 0; text-align: center; cursor: pointer; font-weight: bold; pointer-events: auto; text-transform: uppercase; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); transition: 0.3s;}
+        .btn:hover { background: #FFF; box-shadow: 0 0 40px #FFD700; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #221100, #000000); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #FFD700; transition: opacity 0.5s; }
+        #loading-text { font-size: 2.5rem; font-family:serif; text-shadow:0 0 30px #FFD700; margin-bottom: 20px; text-align: center; }
+        #loading-sub { color:#aa8800; letter-spacing: 2px; text-align: center; padding: 0 20px; font-size: 0.9rem; }
+        #error-log { color: #ff4444; font-size: 0.8rem; margin-top: 30px; max-width: 90%; text-align: center; display: none; border: 1px solid #800; padding: 15px; background: rgba(0,0,0,0.9); border-radius: 8px; }
+        #start-btn { margin-top: 30px; padding: 15px 50px; font-size: 1.5rem; display: none; cursor: pointer; background: #FFD700; color: #000; border: 2px solid #FFF; letter-spacing: 5px; transition: 0.5s; font-weight: bold; box-shadow: 0 0 30px #FFD700; border-radius: 5px; }
+        #start-btn:hover { background: #FFF; box-shadow: 0 0 60px #FFD700; transform: scale(1.05); }
         #webcam { position: absolute; bottom: 10px; right: 10px; width: 100px; opacity: 0.3; transform: scaleX(-1); border: 1px solid #FFD700; z-index: 5; }
         #hand-cursor { position: absolute; width: 30px; height: 30px; border: 2px solid #FFD700; border-radius: 50%; box-shadow: 0 0 20px #FFD700; z-index: 20; display: none; pointer-events: none; transition: 0.1s; }
     </style>
     <script>
         window.onerror = function(msg, url, line) {
             const el = document.getElementById('error-log');
-            if(el) { el.style.display = 'block'; el.innerHTML = "⚠️ 程序遇到问题:<br>" + msg + "<br><br>👉 请刷新页面重试"; }
+            if(el) { el.style.display = 'block'; el.innerHTML = "⚠️ 程序遇到问题:<br>" + msg; }
         };
     </script>
 </head>
 <body>
     <audio id="bgm" src="music.mp3" loop></audio>
     <div id="loading">
-        <div id="loading-text">CINEMATIC NOEL</div>
-        <div id="loading-sub">CONNECTING TO SERVER...</div>
+        <div id="loading-text">ULTIMATE CHRISTMAS</div>
+        <div id="loading-sub">CONNECTING...</div>
         <div id="error-log"></div>
-        <button id="start-btn">ENTER</button>
+        <button id="start-btn">OPEN GIFT</button>
     </div>
     <div id="ui-layer">
         <div class="header"><h1>MERRY CHRISTMAS</h1></div>
         <div class="controls-info">
             <h3>MAGIC CONTROLS</h3>
-            <ul><li>✊ <b>Fist</b> : Golden Tree</li><li>🖐 <b>Open</b> : Treasure Burst</li><li>🤏 <b>Pinch</b> : Focus Memory</li><li>👋 <b>Wave</b> : Rotate View</li></ul>
+            <ul><li>✊ <b>Fist</b> : Assemble Tree</li><li>🖐 <b>Open</b> : Treasure Burst</li><li>🤏 <b>Pinch</b> : Focus Memory</li><li>👋 <b>Wave</b> : Rotate View</li></ul>
             <label class="btn"> ADD PHOTOS <input type="file" id="file-input" multiple accept="image/*" style="display:none"></label>
         </div>
     </div>
@@ -75,15 +74,14 @@
 
         const isMobile = window.innerWidth < 768;
         const CONFIG = {
-            objectCount: isMobile ? 600 : 1300, 
-            photoCount: 12,
-            treeHeight: 35,
-            treeRadius: 14,
-            scatterRadius: 60,
+            objectCount: isMobile ? 800 : 1500,
+            photoCount: 15,
+            treeHeight: 38,
+            treeRadius: 16,
             colors: { 
-                gold: 0xFFD700, 
-                red: 0x8B0000, 
-                green: 0x0B3D0B // 更深沉的绿
+                gold: 0xFFAA00, 
+                red: 0xCC0000, 
+                green: 0x003311 
             }
         };
 
@@ -100,15 +98,14 @@
         const mouse = new THREE.Vector2();
 
         setTimeout(() => {
-            const sub = document.getElementById('loading-sub');
             if(sub && sub.style.display !== 'none' && !document.getElementById('error-log').style.display) {
-                sub.innerHTML = "LOADING RESOURCES...<br>(Please wait)";
+                sub.innerHTML = "LOADING RESOURCES...<br>(Using jsDelivr)";
             }
         }, 8000);
 
         async function init() {
             try {
-                sub.innerText = "TUNING LIGHTS...";
+                sub.innerText = "STACKING GIFTS...";
                 setupScene();
                 createDummyTexture();
                 createRichOrnaments(); 
@@ -117,7 +114,7 @@
                 
                 sub.innerText = "LOADING AI...";
                 try { await Promise.all([setupWebcam(), setupMediaPipe()]); } 
-                catch(e) { console.warn("AI Init failed, continuing visual mode"); }
+                catch(e) { console.warn("AI Init failed"); }
 
                 sub.style.display = 'none';
                 document.getElementById('loading-text').innerText = "READY";
@@ -141,45 +138,38 @@
         function setupScene() {
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
-            // 雾气非常淡，保留黑色深邃感
-            scene.fog = new THREE.FogExp2(0x050300, 0.012);
+            scene.fog = new THREE.FogExp2(0x000000, 0.015);
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 20, 70); camera.lookAt(0, 15, 0);
+            camera.position.set(0, 20, 75); camera.lookAt(0, 15, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.toneMapping = THREE.ReinhardToneMapping; // 改回 Reinhard，柔和不刺眼
-            renderer.toneMappingExposure = 2.0; 
+            renderer.toneMapping = THREE.ACESFilmicToneMapping; 
+            renderer.toneMappingExposure = 1.1; 
             container.appendChild(renderer.domElement);
 
-            // 💡 电影感灯光 (重点调整)
-            // 1. 环境光：暗一点，制造对比度
-            const ambient = new THREE.AmbientLight(0xffffff, 0.2); 
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4); 
             scene.add(ambient);
 
-            // 2. 主光源：暖光，照亮结构
             const mainLight = new THREE.PointLight(0xffaa00, 3, 100);
-            mainLight.position.set(30, 40, 50);
+            mainLight.position.set(20, 30, 40);
             scene.add(mainLight);
 
-            // 3. 轮廓光：冷色，让金球有立体边缘
-            const rimLight = new THREE.PointLight(0x4455ff, 2, 80);
-            rimLight.position.set(-40, 20, 30);
+            const coreLight = new THREE.PointLight(0xffd700, 2, 60);
+            coreLight.position.set(0, 15, 0);
+            scene.add(coreLight);
+            
+            const rimLight = new THREE.PointLight(0xff0000, 2, 80);
+            rimLight.position.set(-30, 10, 20);
             scene.add(rimLight);
 
-            // 4. 底部补光：红色，增加节日氛围
-            const bottomLight = new THREE.PointLight(0xff0000, 1.5, 60);
-            bottomLight.position.set(0, -10, 20);
-            scene.add(bottomLight);
-
-            // ✨ 辉光克制调整 (Harmony Fix)
             const renderScene = new RenderPass(scene, camera);
             const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-            bloomPass.threshold = 0.35; // ⬆️ 提高阈值：只有真正亮的地方才发光，不糊成一片
-            bloomPass.strength = 0.8;   // ⬇️ 降低强度：柔和的光晕，不刺眼
-            bloomPass.radius = 0.8;     // 扩散范围大一点，更唯美
+            bloomPass.threshold = 0.2; 
+            bloomPass.strength = 1.4;
+            bloomPass.radius = 0.5;
             
             composer = new EffectComposer(renderer);
             composer.addPass(renderScene);
@@ -189,8 +179,8 @@
         function createDummyTexture() {
             const cvs = document.createElement('canvas'); cvs.width = 512; cvs.height = 600;
             const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#f8f8f8'; ctx.fillRect(0,0,512,600);
-            ctx.fillStyle = '#111'; ctx.fillRect(30,30,452,452);
+            ctx.fillStyle = '#fff'; ctx.fillRect(0,0,512,600);
+            ctx.fillStyle = '#000'; ctx.fillRect(30,30,452,452);
             ctx.font = '40px Times New Roman'; ctx.fillStyle = '#333'; ctx.textAlign = 'center';
             ctx.fillText("WINTER MEMORY", 256, 550);
             dummyTexture = new THREE.CanvasTexture(cvs);
@@ -198,78 +188,63 @@
         }
 
         function createRichOrnaments() {
-            const geoSphere = new THREE.SphereGeometry(1, 32, 32);
-            const geoBox = new THREE.BoxGeometry(1.4, 1.4, 1.4);
-            const geoGem = new THREE.OctahedronGeometry(1.1, 0);
+            const geoSphere = new THREE.SphereGeometry(1, 24, 24);
+            const geoBox = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const geoGem = new THREE.OctahedronGeometry(1.2, 0);
 
-            // 🎨 材质调整：质感 > 亮度
-            
-            // 香槟金：高反射，低自发光
             const matGold = new THREE.MeshStandardMaterial({ 
-                color: 0xffd700, 
-                metalness: 0.9,   
-                roughness: 0.15, 
-                emissive: 0xaa6600, 
-                emissiveIntensity: 0.1 // ⬇️ 极大降低自发光，靠灯光照亮，显出体积感
+                color: 0xffcc00, metalness: 0.6, roughness: 0.2, 
+                emissive: 0xffaa00, emissiveIntensity: 0.4 
             });
-            
-            // 丝绒红
             const matRed = new THREE.MeshStandardMaterial({ 
-                color: 0x880000, 
-                metalness: 0.4, 
-                roughness: 0.4,
-                emissive: 0x440000,
-                emissiveIntensity: 0.1
+                color: 0xff0033, metalness: 0.4, roughness: 0.3,
+                emissive: 0xaa0000, emissiveIntensity: 0.2
             });
-            
-            // 哑光绿
             const matGreen = new THREE.MeshStandardMaterial({ 
-                color: 0x004411, 
-                metalness: 0.2, 
-                roughness: 0.6,
-                emissive: 0x002200,
-                emissiveIntensity: 0.1
+                color: 0x006622, metalness: 0.3, roughness: 0.4,
+                emissive: 0x003300, emissiveIntensity: 0.2
             });
-
-            // 暖白小灯：这个可以亮一点
-            const matLight = new THREE.MeshBasicMaterial({ color: 0xfffcdb });
+            // 基础灯球材质
+            const matLight = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
             for (let i = 0; i < CONFIG.objectCount; i++) {
                 let mesh;
                 const rand = Math.random();
                 
-                // 灯珠比例 15%
+                // 灯球
                 if (rand < 0.15) {
-                    mesh = new THREE.Mesh(geoSphere, matLight);
-                    mesh.scale.setScalar(0.35); 
+                    // 🌟 修复点：使用 clone() 确保每个灯球材质独立，可以单独闪烁
+                    mesh = new THREE.Mesh(geoSphere, matLight.clone());
+                    mesh.scale.setScalar(0.4); 
                     activeLights.push({ mesh, speed: Math.random()*2+1, phase: Math.random()*Math.PI });
                 } else {
                     let geo, mat;
                     const shapeR = Math.random();
-                    if (shapeR < 0.6) geo = geoSphere; 
+                    if (shapeR < 0.5) geo = geoSphere; 
                     else if (shapeR < 0.85) geo = geoBox; 
                     else geo = geoGem; 
 
                     const colorR = Math.random();
-                    if (colorR < 0.65) mat = matGold; 
+                    if (colorR < 0.6) mat = matGold; 
                     else if (colorR < 0.85) mat = matRed;
                     else mat = matGreen;
 
                     mesh = new THREE.Mesh(geo, mat);
                     mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-                    const s = Math.random() * 0.5 + 0.3; 
+                    const s = Math.random() * 0.6 + 0.3;
                     mesh.scale.set(s,s,s);
                 }
 
                 const hPercent = Math.random(); 
-                const y = Math.pow(hPercent, 0.8) * CONFIG.treeHeight;
+                const y = Math.pow(hPercent, 0.9) * CONFIG.treeHeight;
                 const maxR = (1 - y/CONFIG.treeHeight) * CONFIG.treeRadius;
+                
                 const r = Math.sqrt(Math.random()) * maxR; 
                 const angle = Math.random() * Math.PI * 2;
                 const treePos = new THREE.Vector3(Math.cos(angle)*r, y, Math.sin(angle)*r);
                 
                 const scatterDir = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
-                const scatterDist = 20 + Math.random() * 40;
+                const scatterDist = 20 + Math.random() * 50;
                 const scatterPos = scatterDir.multiplyScalar(scatterDist).add(new THREE.Vector3(0, 20, 0));
 
                 mesh.position.copy(treePos);
@@ -278,30 +253,20 @@
                 ornaments.push(mesh);
             }
 
-            // 树顶星：改为发光的几何体，而不是贴图，更真实
             const starGeo = new THREE.OctahedronGeometry(2.5, 0);
-            // 星星材质：半透明发光晶体
-            const starMat = new THREE.MeshPhysicalMaterial({ 
-                color: 0xffaa00, 
-                emissive: 0xff8800, 
-                emissiveIntensity: 1, // 星星可以亮一点
-                transmission: 0.8, 
-                thickness: 2,
-                roughness: 0 
-            });
+            const starMat = new THREE.MeshBasicMaterial({ color: 0xffdd00 }); 
             topStar = new THREE.Mesh(starGeo, starMat);
             topStar.position.set(0, CONFIG.treeHeight + 1.5, 0);
             
-            // 柔和光晕
             const haloCvs = document.createElement('canvas'); haloCvs.width=64; haloCvs.height=64;
             const hCtx = haloCvs.getContext('2d');
             const grd = hCtx.createRadialGradient(32,32,0,32,32,32);
-            grd.addColorStop(0, 'rgba(255,180,50,0.6)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+            grd.addColorStop(0, 'rgba(255,180,50,0.8)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
             hCtx.fillStyle = grd; hCtx.fillRect(0,0,64,64);
             const haloTex = new THREE.CanvasTexture(haloCvs);
             const spriteMat = new THREE.SpriteMaterial({ map: haloTex, blending: THREE.AdditiveBlending });
             const halo = new THREE.Sprite(spriteMat);
-            halo.scale.set(15, 15, 1); // 光晕改小一点
+            halo.scale.set(25, 25, 1);
             topStar.add(halo);
             topStar.userData = { halo };
             scene.add(topStar);
@@ -330,20 +295,20 @@
             const canvas = document.createElement('canvas'); canvas.width=32; canvas.height=32;
             const ctx = canvas.getContext('2d');
             const grad = ctx.createRadialGradient(16,16,0,16,16,16);
-            grad.addColorStop(0, 'rgba(255,255,255,0.8)'); // 雪花不那么刺眼
+            grad.addColorStop(0, 'rgba(255,255,255,0.9)');
             grad.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.fillStyle = grad; ctx.fillRect(0,0,32,32);
             const tex = new THREE.CanvasTexture(canvas);
             const geo = new THREE.BufferGeometry();
             const pos = [];
             const vel = [];
-            for(let i=0; i<800; i++) {
-                pos.push((Math.random()-0.5)*100, Math.random()*60, (Math.random()-0.5)*100);
+            for(let i=0; i<1000; i++) {
+                pos.push((Math.random()-0.5)*120, Math.random()*80, (Math.random()-0.5)*120);
                 vel.push((Math.random()-0.5)*0.05, Math.random()*0.1+0.02, (Math.random()-0.5)*0.05);
             }
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
             geo.setAttribute('velocity', new THREE.Float32BufferAttribute(vel, 3));
-            const mat = new THREE.PointsMaterial({ size: 0.6, map: tex, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false });
+            const mat = new THREE.PointsMaterial({ size: 0.7, map: tex, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false });
             snowSystem = new THREE.Points(geo, mat);
             scene.add(snowSystem);
         }
@@ -351,17 +316,17 @@
         function switchState(newState) {
             if (state === newState) return;
             state = newState;
-            if (state === 'TREE') gsap.to(camera.position, { x: 0, y: 20, z: 70, duration: 2, ease: "power2.inOut" });
+            if (state === 'TREE') gsap.to(camera.position, { x: 0, y: 20, z: 75, duration: 2, ease: "power2.inOut" });
             const targetProp = state === 'TREE' ? 'treePos' : 'scatterPos';
-            const ease = state === 'TREE' ? "power2.inOut" : "back.out(1.2)";
+            const ease = state === 'TREE' ? "power2.inOut" : "back.out(1.0)";
             ornaments.forEach((m, i) => {
                 const target = m.userData[targetProp];
-                gsap.to(m.position, { x: target.x, y: target.y, z: target.z, duration: 1.5, delay: i * 0.001, ease: ease });
-                if(state === 'SCATTER') gsap.to(m.rotation, { x: Math.random()*Math.PI, y: Math.random()*Math.PI, duration: 1.5 });
+                gsap.to(m.position, { x: target.x, y: target.y, z: target.z, duration: 1.8, delay: i * 0.0005, ease: ease });
+                if(state === 'SCATTER') gsap.to(m.rotation, { x: Math.random()*Math.PI*2, y: Math.random()*Math.PI*2, duration: 2 });
             });
             photoMeshes.forEach(m => {
                 const target = m.userData[targetProp];
-                gsap.to(m.position, { x: target.x, y: target.y, z: target.z, duration: 1.5, ease: ease });
+                gsap.to(m.position, { x: target.x, y: target.y, z: target.z, duration: 1.8, ease: ease });
                 if(state === 'ZOOM' && zoomedPhoto === m) return;
                 gsap.to(m.scale, { x:1, y:1, z:1, duration: 0.5 });
             });
@@ -371,7 +336,7 @@
             if(zoomedPhoto === mesh) return;
             switchState('ZOOM');
             zoomedPhoto = mesh;
-            gsap.to(mesh.position, { x:0, y:20, z:55, duration: 1 });
+            gsap.to(mesh.position, { x:0, y:20, z:60, duration: 1 });
             gsap.to(mesh.rotation, { x:0, y:0, z:0, duration: 1 });
             gsap.to(mesh.scale, { x:3, y:3, z:3, duration: 1 });
         }
@@ -448,13 +413,10 @@
             }
 
             if(state === 'TREE') { scene.rotation.y += 0.002; scene.position.y = Math.sin(time*0.5)*0.5; }
-            
-            // 灯光呼吸更柔和
             activeLights.forEach(l => {
                 const i = 0.5 + Math.sin(time * l.speed + l.phase) * 0.5;
                 l.mesh.material.color.setHSL(0.12, 0.8, 0.4 + i*0.4); 
             });
-
             if(state === 'SCATTER') { ornaments.forEach(m => { m.rotation.x += m.userData.rotSpeed.x; m.rotation.y += m.userData.rotSpeed.y; }); }
             if(snowSystem) {
                 const pos = snowSystem.geometry.attributes.position;
@@ -462,11 +424,12 @@
                 for(let i=0; i<800; i++) {
                     const idx = i*3;
                     pos.array[idx+1] -= vel.array[idx+1]; pos.array[idx] += Math.sin(time + pos.array[idx+1]*0.1) * vel.array[idx];
-                    if(pos.array[idx+1] < -10) pos.array[idx+1] = 60;
+                    // 🌟 修复点：雪花下落重置位置改为 -50，防止在视野内消失
+                    if(pos.array[idx+1] < -50) pos.array[idx+1] = 60;
                 }
                 pos.needsUpdate = true;
             }
-            if(topStar) topStar.userData.halo.scale.setScalar(15 + Math.sin(time*2)*2);
+            if(topStar) topStar.userData.halo.scale.setScalar(20 + Math.sin(time*2)*2);
             composer.render();
         }
 
