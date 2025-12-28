@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Galaxy Christmas Tree (Pro)</title>
+    <title>Galaxy Christmas Tree - Director's Cut</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; user-select: none; touch-action: none; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
@@ -14,17 +14,18 @@
         .controls-info h3 { margin: 0 0 10px 0; color: #FFD700; text-transform: uppercase; }
         .btn { display: inline-block; margin-top: 15px; width: 100%; box-sizing: border-box; background: linear-gradient(180deg, #b8860b, #8B6508); border: 1px solid #FFD700; color: #fff; padding: 10px 0; text-align: center; cursor: pointer; font-weight: bold; pointer-events: auto; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #FFD700; }
-        #start-btn { margin-top: 30px; padding: 15px 40px; font-size: 1.2rem; display: none; cursor: pointer; background: transparent; color: #FFD700; border: 2px solid #FFD700; }
+        #start-btn { margin-top: 30px; padding: 15px 40px; font-size: 1.2rem; display: none; cursor: pointer; background: transparent; color: #FFD700; border: 2px solid #FFD700; transition: all 0.3s;}
+        #start-btn:hover { background: #FFD700; color: #000; }
         #webcam { position: absolute; bottom: 10px; right: 10px; width: 100px; opacity: 0.3; transform: scaleX(-1); border: 1px solid #FFD700; z-index: 5; }
-        #hand-cursor { position: absolute; width: 20px; height: 20px; border: 2px solid #FFD700; transform: translate(-50%, -50%) rotate(45deg); box-shadow: 0 0 15px #FFD700; z-index: 20; display: none; pointer-events: none; }
+        #hand-cursor { position: absolute; width: 20px; height: 20px; border: 2px solid #FFD700; transform: translate(-50%, -50%) rotate(45deg); box-shadow: 0 0 15px #FFD700; z-index: 20; display: none; pointer-events: none; transition: all 0.2s; }
     </style>
 </head>
 <body>
     <audio id="bgm" src="music.mp3" loop></audio>
     <div id="loading">
         <div id="loading-text" style="font-size: 2rem;">GALAXY TREE</div>
-        <div id="loading-sub" style="color:#666; margin-top:10px;">LOADING 20,000 PARTICLES...</div>
-        <button id="start-btn">ENTER</button>
+        <div id="loading-sub" style="color:#666; margin-top:10px;">LOADING UNIVERSE...</div>
+        <button id="start-btn">ENTER GALAXY</button>
     </div>
     <div id="ui-layer">
         <div class="header"><h1>MERRY CHRISTMAS</h1></div>
@@ -47,49 +48,60 @@
         import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
         import gsap from 'gsap';
 
-        // 🔥 核心升级：粒子数量激增到 20,000
         const CONFIG = {
             particleCount: 20000, 
             photoCount: 15,
             treeHeight: 40,
             treeRadius: 16,
-            colors: [0xffaa00, 0xff0033, 0x00ff88, 0xffffff] // 金、红、绿、白
+            colors: [0xffaa00, 0xff0033, 0x00ff88, 0xffffff] 
         };
 
         let scene, camera, renderer, composer;
-        let treeSystem, snowSystem, topStar; // 粒子系统
+        let treeSystem, snowSystem, topStar;
         let photoMeshes = []; 
         let dummyTexture;
         let state = 'TREE'; 
+        let zoomedPhoto = null;
         let handLandmarker;
         let gestureCooldown = 0;
+        let isAnimating = false;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        // 🌟 粒子数据存储 (BufferAttributes)
-        // 我们不存 Mesh，只存坐标数据，性能提升 100 倍
-        let particlePositions, particleTargetTree, particleTargetScatter;
+        let particleTargetTree, particleTargetScatter;
 
         async function init() {
             try {
+                const loadSub = document.getElementById('loading-sub');
+                loadSub.innerText = "INITIALIZING GPU...";
+                
                 setupScene();
-                createParticleTexture(); // 制作发光点贴图
-                createPhotoTexture();    // 制作拍立得贴图
-                createTreeParticles();   // ✨ 核心：创建2万个粒子树
+                createParticleTexture(); 
+                createPhotoTexture();    
+                createTreeParticles();   
                 createPhotoCloud();
                 createSnow();
                 
+                loadSub.innerText = "LOADING CAMERA...";
                 await setupWebcam();
                 await setupMediaPipe();
 
-                document.getElementById('loading').style.display = 'none'; // 简化加载逻辑
-                document.getElementById('start-btn').click(); // 自动触发(如果有交互限制则需手动)
+                loadSub.style.display = 'none';
+                document.getElementById('loading-text').innerText = "READY";
                 
-                document.getElementById('start-btn').style.display = 'block';
-                document.getElementById('start-btn').addEventListener('click', () => {
+                const startBtn = document.getElementById('start-btn');
+                startBtn.style.display = 'block';
+                
+                startBtn.addEventListener('click', () => {
                    document.getElementById('loading').style.display = 'none';
-                   const bgm = document.getElementById('bgm'); bgm.volume=0.6; bgm.play().catch(()=>{});
-                   animate();
+                   const bgm = document.getElementById('bgm'); 
+                   bgm.volume = 0.6; 
+                   bgm.play().catch(e => console.log("Audio play blocked"));
+                   
+                   if (!isAnimating) {
+                       isAnimating = true;
+                       animate();
+                   }
                 });
                 
                 window.addEventListener('resize', onWindowResize);
@@ -101,18 +113,17 @@
         function setupScene() {
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.015); // 纯黑背景配合粒子
+            scene.fog = new THREE.FogExp2(0x000000, 0.015); 
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
             camera.position.set(0, 25, 80); camera.lookAt(0, 20, 0);
 
-            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false }); // 粒子多时关掉抗锯齿提速
+            renderer = new THREE.WebGLRenderer({ antiasias: false, alpha: false }); 
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
             const renderScene = new RenderPass(scene, camera);
-            // ✨ 强力辉光：粒子树的灵魂
             const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
             bloomPass.threshold = 0.1; bloomPass.strength = 2.0; bloomPass.radius = 0.5;
             
@@ -135,112 +146,89 @@
         function createPhotoTexture() {
             const cvs = document.createElement('canvas'); cvs.width = 300; cvs.height = 380;
             const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#fff'; ctx.fillRect(0,0,300,380); // 白边框
-            ctx.fillStyle = '#111'; ctx.fillRect(15,15,270,270); // 黑底
+            ctx.fillStyle = '#fff'; ctx.fillRect(0,0,300,380); 
+            ctx.fillStyle = '#111'; ctx.fillRect(15,15,270,270); 
             ctx.fillStyle = '#333'; ctx.font = '20px Courier'; ctx.textAlign = 'center';
             ctx.fillText("WINTER MEMORY", 150, 340);
             dummyTexture = new THREE.CanvasTexture(cvs);
         }
 
-        // 🎄 核心：用 Points 创建粒子树 (高性能)
         function createTreeParticles() {
             const geometry = new THREE.BufferGeometry();
             const cnt = CONFIG.particleCount;
             
-            const posArray = new Float32Array(cnt * 3);     // 当前位置
-            const colorArray = new Float32Array(cnt * 3);   // 颜色
-            
-            // 我们需要两个额外的数组来存“目标位置”
+            const posArray = new Float32Array(cnt * 3);     
+            const colorArray = new Float32Array(cnt * 3);   
+            const scatterData = new Float32Array(cnt * 3); // x=radius, y=angle, z=speed
             particleTargetTree = new Float32Array(cnt * 3);
-            particleTargetScatter = new Float32Array(cnt * 3);
 
-            const tempVec = new THREE.Vector3();
             const color = new THREE.Color();
 
             for(let i=0; i<cnt; i++) {
-                // 1. 树形态 (Tree Target)
                 const hPercent = Math.random();
                 const y = Math.pow(hPercent, 0.8) * CONFIG.treeHeight;
                 const r = Math.sqrt(Math.random()) * (1 - y/CONFIG.treeHeight) * CONFIG.treeRadius;
                 const angle = Math.random() * Math.PI * 2;
-                
-                // 螺旋干扰 (让树看起来更有纹理)
                 const spiral = angle + y * 0.5; 
                 
                 particleTargetTree[i*3]   = Math.cos(spiral) * r;
                 particleTargetTree[i*3+1] = y;
                 particleTargetTree[i*3+2] = Math.sin(spiral) * r;
+                
+                // ✨ 银河爆炸数据
+                scatterData[i*3] = 30 + Math.random() * 50; // radius
+                scatterData[i*3+1] = Math.random() * Math.PI * 2; // angle
+                scatterData[i*3+2] = (Math.random() - 0.5) * 0.01; // speed
 
-                // 2. 爆炸形态 (Scatter Target) - 星系状
-                const sr = 30 + Math.random() * 50;
-                const sAngle = Math.random() * Math.PI * 2;
-                // 扁平化分布像星系
-                particleTargetScatter[i*3]   = Math.cos(sAngle) * sr;
-                particleTargetScatter[i*3+1] = (Math.random()-0.5) * 20 + 20; 
-                particleTargetScatter[i*3+2] = Math.sin(sAngle) * sr;
+                posArray.set([particleTargetTree[i*3], particleTargetTree[i*3+1], particleTargetTree[i*3+2]], i*3);
 
-                // 3. 初始位置 (设为 Scatter，后面动画聚合)
-                posArray[i*3]   = particleTargetTree[i*3];
-                posArray[i*3+1] = particleTargetTree[i*3+1];
-                posArray[i*3+2] = particleTargetTree[i*3+2];
-
-                // 4. 颜色
                 color.setHex(CONFIG.colors[Math.floor(Math.random()*CONFIG.colors.length)]);
-                colorArray[i*3] = color.r;
-                colorArray[i*3+1] = color.g;
-                colorArray[i*3+2] = color.b;
+                colorArray.set([color.r, color.g, color.b], i*3);
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+            geometry.setAttribute('scatterData', new THREE.BufferAttribute(scatterData, 3));
             
-            // 材质：使用 AdditiveBlending 实现光点叠加
             const material = new THREE.PointsMaterial({
-                size: 0.6,
-                map: dotTexture,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.9,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending
+                size: 0.6, map: dotTexture, vertexColors: true, transparent: true,
+                opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending
             });
 
             treeSystem = new THREE.Points(geometry, material);
             scene.add(treeSystem);
 
-            // 🌟 树顶大星星
-            const starGeo = new THREE.OctahedronGeometry(2, 0);
-            const starMat = new THREE.MeshBasicMaterial({ color: 0xffdd00 });
-            topStar = new THREE.Mesh(starGeo, starMat);
-            topStar.position.set(0, CONFIG.treeHeight+1, 0);
-            
-            // 星星的光晕
-            const haloSprite = new THREE.Sprite(new THREE.SpriteMaterial({
-                map: dotTexture, color: 0xffaa00, blending: THREE.AdditiveBlending 
-            }));
-            haloSprite.scale.set(15,15,1);
-            topStar.add(haloSprite);
+            // ✨ 上帝之星
+            topStar = new THREE.Group();
+            const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dotTexture, color: 0xffaa00, blending: THREE.AdditiveBlending, depthWrite: false }));
+            halo.scale.set(15, 15, 1);
+            topStar.add(halo);
+            topStar.position.set(0, CONFIG.treeHeight + 1, 0);
+            topStar.userData = { halo };
             scene.add(topStar);
         }
 
         function createPhotoCloud() {
             const geo = new THREE.PlaneGeometry(4, 4.8);
             for(let i=0; i<CONFIG.photoCount; i++) {
-                const mat = new THREE.MeshBasicMaterial({ map: dummyTexture, side: THREE.DoubleSide });
+                const mat = new THREE.MeshBasicMaterial({ map: dummyTexture, side: THREE.DoubleSide, transparent: true });
                 const mesh = new THREE.Mesh(geo, mat);
                 
-                // 拍立得照片稍微浮在粒子表面
                 const t = i/CONFIG.photoCount;
                 const y = (1-t) * (CONFIG.treeHeight-5) + 2;
                 const r = (1 - y/CONFIG.treeHeight) * CONFIG.treeRadius + 2; 
                 const angle = i * 2.5;
 
                 const treePos = new THREE.Vector3(Math.cos(angle)*r, y, Math.sin(angle)*r);
-                const scatterPos = new THREE.Vector3((Math.random()-0.5)*80, Math.random()*40+10, (Math.random()-0.5)*80);
+                
+                // 照片的银河数据
+                const scatterRadius = 40 + Math.random() * 10;
+                const scatterAngle = Math.random() * Math.PI * 2;
+                const scatterSpeed = (Math.random() - 0.5) * 0.005;
 
                 mesh.position.copy(treePos);
                 mesh.lookAt(0, y, 0);
-                mesh.userData = { treePos, scatterPos };
+                mesh.userData = { treePos, scatterRadius, scatterAngle, scatterSpeed };
                 
                 scene.add(mesh);
                 photoMeshes.push(mesh);
@@ -258,25 +246,41 @@
             scene.add(snowSystem);
         }
 
-        // 🎥 动画状态机 (核心逻辑修改)
-        // 因为我们用的是 Points，不能直接 gsap mesh.position
-        // 我们需要自己写一个插值器
-        let animationProgress = { val: 0 }; // 0 = Tree, 1 = Scatter
+        let animationProgress = { val: 0 }; 
 
         function switchState(newState) {
             if (state === newState) return;
             state = newState;
             
+            if (state === 'ZOOM') {
+                gsap.to(treeSystem.material, { opacity: 0.1, duration: 1 }); // 树变暗
+                gsap.to(camera.position, { z: 65, duration: 1 });
+            } else {
+                gsap.to(treeSystem.material, { opacity: 0.9, duration: 1 }); // 树恢复
+                if (zoomedPhoto) gsap.to(zoomedPhoto.scale, { x:1, y:1, z:1, duration: 1 });
+                zoomedPhoto = null;
+            }
+
             if (state === 'TREE') {
                 gsap.to(camera.position, { x: 0, y: 25, z: 80, duration: 2 });
                 gsap.to(animationProgress, { val: 0, duration: 2, ease: "power2.inOut" });
-                // 照片飞回
-                photoMeshes.forEach(m => gsap.to(m.position, { ...m.userData.treePos, duration: 2 }));
             } else if (state === 'SCATTER') {
-                gsap.to(animationProgress, { val: 1, duration: 2.5, ease: "power2.out" }); // 慢一点炸开
-                // 照片炸开
-                photoMeshes.forEach(m => gsap.to(m.position, { ...m.userData.scatterPos, duration: 2 }));
+                gsap.to(animationProgress, { val: 1, duration: 2.5, ease: "power2.out" }); 
             }
+        }
+
+        function zoomToPhoto(mesh) {
+            if (zoomedPhoto === mesh) return;
+            if (state !== 'ZOOM' && state !== 'SCATTER') switchState('SCATTER');
+            
+            setTimeout(() => {
+                if (zoomedPhoto) gsap.to(zoomedPhoto.scale, { x:1, y:1, z:1, duration: 1 });
+                zoomedPhoto = mesh;
+                switchState('ZOOM');
+                gsap.to(mesh.position, { x:0, y:20, z:50, duration: 1.5 });
+                gsap.to(mesh.rotation, { x:0, y:0, z:0, duration: 1.5 });
+                gsap.to(mesh.scale, { x:3, y:3, z:3, duration: 1.5 });
+            }, state === 'TREE' ? 1000 : 0); // 如果在树状态，等它散开再放大
         }
 
         function handleUpload(e) {
@@ -284,33 +288,18 @@
             let idx = 0;
             files.forEach(file => {
                 if (idx >= photoMeshes.length) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    new THREE.TextureLoader().load(ev.target.result, (tex) => {
-                        tex.colorSpace = THREE.SRGBColorSpace;
-                        photoMeshes[idx].material.map = tex;
-                        photoMeshes[idx].material.needsUpdate = true;
-                        idx++;
-                    });
-                };
-                reader.readAsDataURL(file);
+                new THREE.TextureLoader().load(URL.createObjectURL(file), (tex) => {
+                    tex.colorSpace = THREE.SRGBColorSpace;
+                    photoMeshes[idx].material.map = tex;
+                    photoMeshes[idx].material.needsUpdate = true;
+                    idx++;
+                });
             });
         }
-
-        // 手势部分保持不变，因为逻辑是通用的
-        async function setupWebcam() {
-            const video = document.getElementById('webcam');
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
-            video.srcObject = stream;
-            return new Promise(r => video.onloadeddata = r);
-        }
-        async function setupMediaPipe() {
-            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
-            handLandmarker = await HandLandmarker.createFromOptions(vision, {
-                baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`, delegate: "GPU" },
-                runningMode: "VIDEO", numHands: 1
-            });
-        }
+        
+        async function setupWebcam() { /* ... unchanged ... */ }
+        async function setupMediaPipe() { /* ... unchanged ... */ }
+        
         function detectGesture(landmarks) {
             const lm = landmarks[0];
             const palmX = 1-lm[9].x, palmY = lm[9].y;
@@ -320,19 +309,23 @@
             const wrist = lm[0];
             const tips = [lm[8],lm[12],lm[16],lm[20]];
             const avgDist = tips.reduce((s,t) => s+Math.hypot(t.x-wrist.x,t.y-wrist.y,t.z-wrist.z),0)/4;
+            const pinchDist = Math.hypot(lm[4].x-lm[8].x, lm[4].y-lm[8].y, lm[4].z-lm[8].z);
             const now = Date.now();
             
-            if (now-gestureCooldown > 600) {
-                if(avgDist<0.28) { if(state!=='TREE'){ switchState('TREE'); gestureCooldown=now;} cursor.style.borderColor='red'; }
-                else if(avgDist>0.45 && state==='TREE'){ switchState('SCATTER'); gestureCooldown=now; cursor.style.borderColor='gold'; }
+            if (now-gestureCooldown > 800) {
+                if(avgDist < 0.28) { if(state!=='TREE'){ switchState('TREE'); gestureCooldown=now;} }
+                else if(pinchDist < 0.06) {
+                     mouse.x=(palmX*2)-1; mouse.y=-(palmY*2)+1;
+                     raycaster.setFromCamera(mouse,camera);
+                     const intersects=raycaster.intersectObjects(photoMeshes);
+                     if(intersects.length>0){ zoomToPhoto(intersects[0].object); gestureCooldown=now; }
+                }
+                else if(avgDist > 0.45 && state==='TREE'){ switchState('SCATTER'); gestureCooldown=now; }
             }
             if(state==='SCATTER' && avgDist>0.4) gsap.to(scene.rotation, {y: (palmX-0.5)*3, x: (palmY-0.5)*0.5, duration: 1});
         }
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
-        }
+        function onWindowResize() { /* ... unchanged ... */ }
 
         function animate() {
             requestAnimationFrame(animate);
@@ -345,40 +338,53 @@
                 else document.getElementById('hand-cursor').style.display = 'none';
             }
 
-            // 🎇 粒子系统核心动画 (Lerp)
-            // 手动计算数万个点的位置插值
+            // ✨ 电影感镜头
+            if(state === 'TREE') {
+                camera.position.z = 80 + Math.sin(time * 0.2) * 3;
+            }
+
             if (treeSystem) {
                 const pos = treeSystem.geometry.attributes.position;
-                const t = animationProgress.val; // 0 to 1
+                const scatter = treeSystem.geometry.attributes.scatterData;
+                const t = animationProgress.val; 
                 
                 for(let i=0; i<CONFIG.particleCount; i++) {
                     const idx = i*3;
-                    const tx = particleTargetTree[idx];
-                    const ty = particleTargetTree[idx+1];
-                    const tz = particleTargetTree[idx+2];
+                    // Lerp from Tree to Scatter
+                    const tx = particleTargetTree[idx], ty = particleTargetTree[idx+1], tz = particleTargetTree[idx+2];
                     
-                    const sx = particleTargetScatter[idx];
-                    const sy = particleTargetScatter[idx+1];
-                    const sz = particleTargetScatter[idx+2];
-                    
-                    // 线性插值 (Lerp)
-                    // pos = tree * (1-t) + scatter * t
+                    // ✨ 计算银河轨道位置
+                    const radius = scatter.array[idx];
+                    scatter.array[idx+1] += scatter.array[idx+2]; // angle += speed
+                    const angle = scatter.array[idx+1];
+                    const sx = Math.cos(angle) * radius, sz = Math.sin(angle) * radius;
+                    const sy = (Math.random()-0.5)*10 + 20;
+
                     pos.array[idx]   = tx * (1-t) + sx * t;
                     pos.array[idx+1] = ty * (1-t) + sy * t;
                     pos.array[idx+2] = tz * (1-t) + sz * t;
 
-                    // 增加一点点动态闪烁 (Noise)
-                    if(state==='TREE') {
-                        pos.array[idx+1] += Math.sin(time*2 + tx)*0.02; 
-                    }
+                    if(state==='TREE') pos.array[idx+1] += Math.sin(time*2 + tx)*0.02; 
                 }
                 pos.needsUpdate = true;
                 
-                // 整体旋转
                 if(state==='TREE') scene.rotation.y += 0.001;
+                else if(state==='SCATTER') scene.rotation.y += 0.0005;
             }
             
-            // 雪花
+            photoMeshes.forEach(m => {
+                if (state==='SCATTER' && m !== zoomedPhoto) {
+                    m.userData.scatterAngle += m.userData.scatterSpeed;
+                    const r = m.userData.scatterRadius;
+                    const a = m.userData.scatterAngle;
+                    m.position.x = Math.cos(a) * r;
+                    m.position.z = Math.sin(a) * r;
+                }
+            });
+
+            // 星星呼吸
+            if(topStar) topStar.userData.halo.scale.setScalar(15 + Math.sin(time * 2) * 3);
+            
             if(snowSystem) {
                 const pos = snowSystem.geometry.attributes.position;
                 for(let i=0; i<1000; i++) {
@@ -390,6 +396,11 @@
 
             composer.render();
         }
+
+        // --- Dummy functions for brevity, use full versions from prev answer ---
+        async function setupWebcam() { const video = document.getElementById('webcam'); const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } }); video.srcObject = stream; return new Promise(r => video.onloadeddata = r); }
+        async function setupMediaPipe() { const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"); handLandmarker = await HandLandmarker.createFromOptions(vision, { baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`, delegate: "GPU" }, runningMode: "VIDEO", numHands: 1 }); }
+        function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight); }
 
         init();
     </script>
