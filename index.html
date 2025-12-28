@@ -3,30 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Luxury Golden Christmas (Bright Version)</title>
+    <title>Luxury Golden Christmas (Cinematic Harmony)</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Times New Roman', serif; user-select: none; touch-action: none; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
         .header { text-align: center; margin-top: 10px; }
-        h1 { margin: 0; font-size: 2.5rem; letter-spacing: 5px; color: #FFD700; text-shadow: 0 0 20px #FFAA00, 0 0 40px #FF0000; font-weight: 100; }
-        .controls-info { background: rgba(50, 40, 0, 0.6); backdrop-filter: blur(10px); padding: 20px; border: 1px solid rgba(255, 215, 0, 0.6); color: #FFD700; pointer-events: auto; max-width: 320px; font-size: 0.9rem; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
-        .controls-info h3 { margin: 0 0 15px 0; border-bottom: 1px solid #FFD700; padding-bottom: 5px; letter-spacing: 2px;}
-        .btn { display: inline-block; margin-top: 15px; width: 100%; box-sizing: border-box; background: linear-gradient(45deg, #FFD700, #FFA500); border: 1px solid #FFF; color: #000; padding: 12px 0; text-align: center; cursor: pointer; font-weight: bold; pointer-events: auto; text-transform: uppercase; box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); transition: 0.3s;}
-        .btn:hover { background: #FFF; box-shadow: 0 0 40px #FFD700; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #332200, #000000); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #FFD700; }
-        #start-btn { margin-top: 30px; padding: 15px 50px; font-size: 1.5rem; display: none; cursor: pointer; background: #FFD700; color: #000; border: 2px solid #FFF; letter-spacing: 5px; transition: 0.5s; font-weight: bold; box-shadow: 0 0 30px #FFD700;}
-        #start-btn:hover { background: #FFF; box-shadow: 0 0 60px #FFD700; }
+        /* 标题光晕也调柔和一点 */
+        h1 { margin: 0; font-size: 2.5rem; letter-spacing: 5px; color: #FFE082; text-shadow: 0 0 15px #B8860B; font-weight: 100; opacity: 0.9; }
+        .controls-info { background: rgba(30, 25, 10, 0.6); backdrop-filter: blur(10px); padding: 20px; border: 1px solid rgba(255, 215, 0, 0.3); color: #FFE082; pointer-events: auto; max-width: 320px; font-size: 0.9rem; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .controls-info h3 { margin: 0 0 15px 0; border-bottom: 1px solid #B8860B; padding-bottom: 5px; letter-spacing: 2px;}
+        .btn { display: inline-block; margin-top: 15px; width: 100%; box-sizing: border-box; background: linear-gradient(45deg, #B8860B, #8B4500); border: 1px solid #FFE082; color: #fff; padding: 12px 0; text-align: center; cursor: pointer; font-weight: bold; pointer-events: auto; text-transform: uppercase; box-shadow: 0 0 15px rgba(184, 134, 11, 0.3); transition: 0.3s;}
+        .btn:hover { background: #FFD700; color: #000; box-shadow: 0 0 30px #B8860B; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1005, #000000); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #B8860B; transition: opacity 0.5s; }
+        #loading-text { font-size: 2.5rem; font-family:serif; text-shadow:0 0 20px #B8860B; margin-bottom: 20px; text-align: center; }
+        #loading-sub { color:#886644; letter-spacing: 2px; text-align: center; padding: 0 20px; font-size: 0.9rem; }
+        #error-log { color: #cc5555; font-size: 0.8rem; margin-top: 30px; max-width: 90%; text-align: center; display: none; border: 1px solid #500; padding: 15px; background: rgba(0,0,0,0.9); border-radius: 8px; }
+        #start-btn { margin-top: 30px; padding: 15px 50px; font-size: 1.5rem; display: none; cursor: pointer; background: transparent; color: #FFD700; border: 1px solid #FFD700; letter-spacing: 5px; transition: 0.5s; font-weight: 100; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); border-radius: 2px; }
+        #start-btn:hover { background: #FFD700; color: #000; box-shadow: 0 0 40px #FFD700; }
         #webcam { position: absolute; bottom: 10px; right: 10px; width: 100px; opacity: 0.3; transform: scaleX(-1); border: 1px solid #FFD700; z-index: 5; }
         #hand-cursor { position: absolute; width: 30px; height: 30px; border: 2px solid #FFD700; border-radius: 50%; box-shadow: 0 0 20px #FFD700; z-index: 20; display: none; pointer-events: none; transition: 0.1s; }
     </style>
+    <script>
+        window.onerror = function(msg, url, line) {
+            const el = document.getElementById('error-log');
+            if(el) { el.style.display = 'block'; el.innerHTML = "⚠️ 程序遇到问题:<br>" + msg + "<br><br>👉 请刷新页面重试"; }
+        };
+    </script>
 </head>
 <body>
     <audio id="bgm" src="music.mp3" loop></audio>
     <div id="loading">
-        <div id="loading-text" style="font-size: 3rem; font-family:serif; text-shadow:0 0 30px #FFD700;">GOLDEN LUXURY</div>
-        <div id="loading-sub" style="color:#aa8800; margin-top:10px; letter-spacing: 2px;">PREPARING GIFTS...</div>
-        <button id="start-btn">OPEN GIFT</button>
+        <div id="loading-text">CINEMATIC NOEL</div>
+        <div id="loading-sub">CONNECTING TO SERVER...</div>
+        <div id="error-log"></div>
+        <button id="start-btn">ENTER</button>
     </div>
     <div id="ui-layer">
         <div class="header"><h1>MERRY CHRISTMAS</h1></div>
@@ -40,7 +51,17 @@
     <video id="webcam" autoplay playsinline muted></video>
     <div id="canvas-container"></div>
 
-    <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/", "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm", "gsap": "https://unpkg.com/gsap@3.12.5/index.js" } }</script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+            "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm",
+            "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm"
+        }
+    }
+    </script>
+
     <script type="module">
         import * as THREE from 'three';
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -49,6 +70,9 @@
         import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
         import gsap from 'gsap';
 
+        const sub = document.getElementById('loading-sub');
+        if(sub) sub.innerText = "LOADING ENGINE...";
+
         const isMobile = window.innerWidth < 768;
         const CONFIG = {
             objectCount: isMobile ? 600 : 1300, 
@@ -56,7 +80,11 @@
             treeHeight: 35,
             treeRadius: 14,
             scatterRadius: 60,
-            colors: { gold: 0xFFD700, red: 0xDC143C, green: 0x228B22 }
+            colors: { 
+                gold: 0xFFD700, 
+                red: 0x8B0000, 
+                green: 0x0B3D0B // 更深沉的绿
+            }
         };
 
         let scene, camera, renderer, composer;
@@ -71,20 +99,25 @@
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
+        setTimeout(() => {
+            const sub = document.getElementById('loading-sub');
+            if(sub && sub.style.display !== 'none' && !document.getElementById('error-log').style.display) {
+                sub.innerHTML = "LOADING RESOURCES...<br>(Please wait)";
+            }
+        }, 8000);
+
         async function init() {
             try {
-                const sub = document.getElementById('loading-sub');
-                sub.innerText = "POLISHING GOLD...";
+                sub.innerText = "TUNING LIGHTS...";
                 setupScene();
-                
                 createDummyTexture();
                 createRichOrnaments(); 
                 createPhotoCloud();
                 createSoftSnow();
                 
-                sub.innerText = "STARTING VISION AI...";
-                await setupWebcam();
-                await setupMediaPipe();
+                sub.innerText = "LOADING AI...";
+                try { await Promise.all([setupWebcam(), setupMediaPipe()]); } 
+                catch(e) { console.warn("AI Init failed, continuing visual mode"); }
 
                 sub.style.display = 'none';
                 document.getElementById('loading-text').innerText = "READY";
@@ -92,7 +125,8 @@
                 btn.style.display = 'block';
                 
                 btn.addEventListener('click', () => {
-                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loading').style.opacity = 0;
+                    setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 500);
                     const bgm = document.getElementById('bgm');
                     bgm.volume = 0.6; bgm.play().catch(()=>{});
                     if(!isAnimating) { isAnimating = true; animate(); }
@@ -101,56 +135,51 @@
                 window.addEventListener('resize', onWindowResize);
                 document.getElementById('file-input').addEventListener('change', handleUpload);
 
-            } catch (e) { console.error(e); alert("Error: " + e.message); }
+            } catch (e) { throw e; }
         }
 
         function setupScene() {
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
-            // 雾气调淡，不要遮住金光
-            scene.fog = new THREE.FogExp2(0x000000, 0.01);
+            // 雾气非常淡，保留黑色深邃感
+            scene.fog = new THREE.FogExp2(0x050300, 0.012);
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 20, 70); 
-            camera.lookAt(0, 15, 0);
+            camera.position.set(0, 20, 70); camera.lookAt(0, 15, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.3; // 曝光拉高
+            renderer.toneMapping = THREE.ReinhardToneMapping; // 改回 Reinhard，柔和不刺眼
+            renderer.toneMappingExposure = 2.0; 
             container.appendChild(renderer.domElement);
 
-            // 💡 暴力补光系统 (让金色亮起来的关键)
-            // 1. 全局环境光 (填补黑色阴影)
-            const ambient = new THREE.AmbientLight(0xffffff, 0.6); 
+            // 💡 电影感灯光 (重点调整)
+            // 1. 环境光：暗一点，制造对比度
+            const ambient = new THREE.AmbientLight(0xffffff, 0.2); 
             scene.add(ambient);
 
-            // 2. 半球光 (模拟天光地光，防止死黑)
-            const hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1);
-            scene.add(hemiLight);
-            
-            // 3. 强力主光源
-            const mainLight = new THREE.PointLight(0xffaa00, 4, 150);
-            mainLight.position.set(20, 30, 40);
+            // 2. 主光源：暖光，照亮结构
+            const mainLight = new THREE.PointLight(0xffaa00, 3, 100);
+            mainLight.position.set(30, 40, 50);
             scene.add(mainLight);
-            
-            // 4. 侧面补光
-            const rimLight = new THREE.PointLight(0xff0000, 3, 80);
-            rimLight.position.set(-30, 10, 20);
-            scene.add(rimLight);
-            
-            // 5. 树心高亮
-            const coreLight = new THREE.PointLight(0xffd700, 2, 60);
-            coreLight.position.set(0, 15, 0);
-            scene.add(coreLight);
 
-            // ✨ 辉光特效调强
+            // 3. 轮廓光：冷色，让金球有立体边缘
+            const rimLight = new THREE.PointLight(0x4455ff, 2, 80);
+            rimLight.position.set(-40, 20, 30);
+            scene.add(rimLight);
+
+            // 4. 底部补光：红色，增加节日氛围
+            const bottomLight = new THREE.PointLight(0xff0000, 1.5, 60);
+            bottomLight.position.set(0, -10, 20);
+            scene.add(bottomLight);
+
+            // ✨ 辉光克制调整 (Harmony Fix)
             const renderScene = new RenderPass(scene, camera);
             const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-            bloomPass.threshold = 0.1; // 阈值极低，让所有东西都发光
-            bloomPass.strength = 1.6;  // 强度拉满
-            bloomPass.radius = 0.6;
+            bloomPass.threshold = 0.35; // ⬆️ 提高阈值：只有真正亮的地方才发光，不糊成一片
+            bloomPass.strength = 0.8;   // ⬇️ 降低强度：柔和的光晕，不刺眼
+            bloomPass.radius = 0.8;     // 扩散范围大一点，更唯美
             
             composer = new EffectComposer(renderer);
             composer.addPass(renderScene);
@@ -160,60 +189,60 @@
         function createDummyTexture() {
             const cvs = document.createElement('canvas'); cvs.width = 512; cvs.height = 600;
             const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#fdfdfd'; ctx.fillRect(0,0,512,600);
-            ctx.fillStyle = '#000'; ctx.fillRect(30,30,452,452);
-            ctx.font = '40px Courier'; ctx.fillStyle = '#333'; ctx.textAlign = 'center';
+            ctx.fillStyle = '#f8f8f8'; ctx.fillRect(0,0,512,600);
+            ctx.fillStyle = '#111'; ctx.fillRect(30,30,452,452);
+            ctx.font = '40px Times New Roman'; ctx.fillStyle = '#333'; ctx.textAlign = 'center';
             ctx.fillText("WINTER MEMORY", 256, 550);
             dummyTexture = new THREE.CanvasTexture(cvs);
             dummyTexture.colorSpace = THREE.SRGBColorSpace;
         }
 
         function createRichOrnaments() {
-            const geoSphere = new THREE.SphereGeometry(1, 24, 24);
-            const geoBox = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-            const geoGem = new THREE.OctahedronGeometry(1.2, 0);
+            const geoSphere = new THREE.SphereGeometry(1, 32, 32);
+            const geoBox = new THREE.BoxGeometry(1.4, 1.4, 1.4);
+            const geoGem = new THREE.OctahedronGeometry(1.1, 0);
 
-            // 🎨 材质大改版：自发光 (Emissive) 是关键
+            // 🎨 材质调整：质感 > 亮度
             
-            // 亮金：降低金属度(0.5)，拉高自发光
+            // 香槟金：高反射，低自发光
             const matGold = new THREE.MeshStandardMaterial({ 
-                color: 0xffcc00, 
-                metalness: 0.4,   // 关键：不要全金属，否则没反射就是黑的
-                roughness: 0.2, 
-                emissive: 0xffaa00, // 关键：自己发光！
-                emissiveIntensity: 0.6
+                color: 0xffd700, 
+                metalness: 0.9,   
+                roughness: 0.15, 
+                emissive: 0xaa6600, 
+                emissiveIntensity: 0.1 // ⬇️ 极大降低自发光，靠灯光照亮，显出体积感
             });
             
-            // 亮红
+            // 丝绒红
             const matRed = new THREE.MeshStandardMaterial({ 
-                color: 0xff0033, 
-                metalness: 0.3, 
-                roughness: 0.2,
-                emissive: 0xaa0000,
-                emissiveIntensity: 0.4
+                color: 0x880000, 
+                metalness: 0.4, 
+                roughness: 0.4,
+                emissive: 0x440000,
+                emissiveIntensity: 0.1
             });
             
-            // 亮绿
+            // 哑光绿
             const matGreen = new THREE.MeshStandardMaterial({ 
-                color: 0x00aa44, 
+                color: 0x004411, 
                 metalness: 0.2, 
-                roughness: 0.2,
-                emissive: 0x004400,
-                emissiveIntensity: 0.3
+                roughness: 0.6,
+                emissive: 0x002200,
+                emissiveIntensity: 0.1
             });
 
-            // 纯白灯球
-            const matLight = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            // 暖白小灯：这个可以亮一点
+            const matLight = new THREE.MeshBasicMaterial({ color: 0xfffcdb });
 
             for (let i = 0; i < CONFIG.objectCount; i++) {
                 let mesh;
                 const rand = Math.random();
                 
-                // 增加灯球比例到 20%
-                if (rand < 0.2) {
+                // 灯珠比例 15%
+                if (rand < 0.15) {
                     mesh = new THREE.Mesh(geoSphere, matLight);
-                    mesh.scale.setScalar(0.5); // 灯球稍微大一点
-                    activeLights.push({ mesh, speed: Math.random()*3+2, phase: Math.random()*Math.PI });
+                    mesh.scale.setScalar(0.35); 
+                    activeLights.push({ mesh, speed: Math.random()*2+1, phase: Math.random()*Math.PI });
                 } else {
                     let geo, mat;
                     const shapeR = Math.random();
@@ -222,56 +251,57 @@
                     else geo = geoGem; 
 
                     const colorR = Math.random();
-                    if (colorR < 0.65) mat = matGold; // 增加金色比例
+                    if (colorR < 0.65) mat = matGold; 
                     else if (colorR < 0.85) mat = matRed;
                     else mat = matGreen;
 
                     mesh = new THREE.Mesh(geo, mat);
                     mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-                    const s = Math.random() * 0.5 + 0.4; // 整体放大一点
+                    const s = Math.random() * 0.5 + 0.3; 
                     mesh.scale.set(s,s,s);
                 }
 
-                // 树形分布
                 const hPercent = Math.random(); 
                 const y = Math.pow(hPercent, 0.8) * CONFIG.treeHeight;
                 const maxR = (1 - y/CONFIG.treeHeight) * CONFIG.treeRadius;
                 const r = Math.sqrt(Math.random()) * maxR; 
                 const angle = Math.random() * Math.PI * 2;
-                
                 const treePos = new THREE.Vector3(Math.cos(angle)*r, y, Math.sin(angle)*r);
                 
-                // 爆炸扩散
                 const scatterDir = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
                 const scatterDist = 20 + Math.random() * 40;
                 const scatterPos = scatterDir.multiplyScalar(scatterDist).add(new THREE.Vector3(0, 20, 0));
 
                 mesh.position.copy(treePos);
-                mesh.userData = { treePos, scatterPos, 
-                    rotSpeed: {x: Math.random()*0.02, y: Math.random()*0.02} 
-                };
-                
+                mesh.userData = { treePos, scatterPos, rotSpeed: {x: Math.random()*0.02, y: Math.random()*0.02} };
                 scene.add(mesh);
                 ornaments.push(mesh);
             }
 
-            // 树顶巨星
-            const starGeo = new THREE.OctahedronGeometry(3.0, 0);
-            const starMat = new THREE.MeshBasicMaterial({ color: 0xffff00 }); // 纯亮黄
+            // 树顶星：改为发光的几何体，而不是贴图，更真实
+            const starGeo = new THREE.OctahedronGeometry(2.5, 0);
+            // 星星材质：半透明发光晶体
+            const starMat = new THREE.MeshPhysicalMaterial({ 
+                color: 0xffaa00, 
+                emissive: 0xff8800, 
+                emissiveIntensity: 1, // 星星可以亮一点
+                transmission: 0.8, 
+                thickness: 2,
+                roughness: 0 
+            });
             topStar = new THREE.Mesh(starGeo, starMat);
-            topStar.position.set(0, CONFIG.treeHeight + 2, 0);
+            topStar.position.set(0, CONFIG.treeHeight + 1.5, 0);
             
-            // 星星光晕
+            // 柔和光晕
             const haloCvs = document.createElement('canvas'); haloCvs.width=64; haloCvs.height=64;
             const hCtx = haloCvs.getContext('2d');
             const grd = hCtx.createRadialGradient(32,32,0,32,32,32);
-            grd.addColorStop(0, 'rgba(255,200,50,1)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+            grd.addColorStop(0, 'rgba(255,180,50,0.6)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
             hCtx.fillStyle = grd; hCtx.fillRect(0,0,64,64);
             const haloTex = new THREE.CanvasTexture(haloCvs);
-
             const spriteMat = new THREE.SpriteMaterial({ map: haloTex, blending: THREE.AdditiveBlending });
             const halo = new THREE.Sprite(spriteMat);
-            halo.scale.set(25, 25, 1);
+            halo.scale.set(15, 15, 1); // 光晕改小一点
             topStar.add(halo);
             topStar.userData = { halo };
             scene.add(topStar);
@@ -282,19 +312,15 @@
             for (let i = 0; i < CONFIG.photoCount; i++) {
                 const mat = new THREE.MeshBasicMaterial({ map: dummyTexture, side: THREE.DoubleSide });
                 const mesh = new THREE.Mesh(geo, mat);
-                
                 const t = i / CONFIG.photoCount;
                 const y = (1-t) * (CONFIG.treeHeight-5) + 3;
                 const r = (1 - y/CONFIG.treeHeight) * CONFIG.treeRadius + 2.5; 
                 const angle = i * 2.0;
-
                 const treePos = new THREE.Vector3(Math.cos(angle)*r, y, Math.sin(angle)*r);
                 const scatterPos = new THREE.Vector3((Math.random()-0.5)*80, Math.random()*40+10, (Math.random()-0.5)*80);
-
                 mesh.position.copy(treePos);
                 mesh.lookAt(0, y, 0);
                 mesh.userData = { treePos, scatterPos };
-                
                 scene.add(mesh);
                 photoMeshes.push(mesh);
             }
@@ -304,11 +330,10 @@
             const canvas = document.createElement('canvas'); canvas.width=32; canvas.height=32;
             const ctx = canvas.getContext('2d');
             const grad = ctx.createRadialGradient(16,16,0,16,16,16);
-            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(0, 'rgba(255,255,255,0.8)'); // 雪花不那么刺眼
             grad.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.fillStyle = grad; ctx.fillRect(0,0,32,32);
             const tex = new THREE.CanvasTexture(canvas);
-
             const geo = new THREE.BufferGeometry();
             const pos = [];
             const vel = [];
@@ -318,11 +343,7 @@
             }
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
             geo.setAttribute('velocity', new THREE.Float32BufferAttribute(vel, 3));
-            
-            const mat = new THREE.PointsMaterial({
-                size: 0.8, map: tex, transparent: true, opacity: 0.8, 
-                blending: THREE.AdditiveBlending, depthWrite: false
-            });
+            const mat = new THREE.PointsMaterial({ size: 0.6, map: tex, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false });
             snowSystem = new THREE.Points(geo, mat);
             scene.add(snowSystem);
         }
@@ -330,27 +351,14 @@
         function switchState(newState) {
             if (state === newState) return;
             state = newState;
-
-            if (state === 'TREE') {
-                gsap.to(camera.position, { x: 0, y: 20, z: 70, duration: 2, ease: "power2.inOut" });
-            }
-
+            if (state === 'TREE') gsap.to(camera.position, { x: 0, y: 20, z: 70, duration: 2, ease: "power2.inOut" });
             const targetProp = state === 'TREE' ? 'treePos' : 'scatterPos';
             const ease = state === 'TREE' ? "power2.inOut" : "back.out(1.2)";
-            
             ornaments.forEach((m, i) => {
                 const target = m.userData[targetProp];
-                gsap.to(m.position, { 
-                    x: target.x, y: target.y, z: target.z, 
-                    duration: 1.5, 
-                    delay: i * 0.001, 
-                    ease: ease 
-                });
-                if(state === 'SCATTER') {
-                    gsap.to(m.rotation, { x: Math.random()*Math.PI, y: Math.random()*Math.PI, duration: 1.5 });
-                }
+                gsap.to(m.position, { x: target.x, y: target.y, z: target.z, duration: 1.5, delay: i * 0.001, ease: ease });
+                if(state === 'SCATTER') gsap.to(m.rotation, { x: Math.random()*Math.PI, y: Math.random()*Math.PI, duration: 1.5 });
             });
-
             photoMeshes.forEach(m => {
                 const target = m.userData[targetProp];
                 gsap.to(m.position, { x: target.x, y: target.y, z: target.z, duration: 1.5, ease: ease });
@@ -383,50 +391,44 @@
         }
 
         async function setupWebcam() {
-            const video = document.getElementById('webcam');
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
-            video.srcObject = stream;
-            return new Promise(r => video.onloadeddata = r);
+            try {
+                const video = document.getElementById('webcam');
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
+                video.srcObject = stream;
+                return new Promise(r => video.onloadeddata = r);
+            } catch(e) { console.warn("Camera failed", e); }
         }
         async function setupMediaPipe() {
-            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
-            handLandmarker = await HandLandmarker.createFromOptions(vision, {
-                baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`, delegate: "GPU" },
-                runningMode: "VIDEO", numHands: 1
-            });
+            try {
+                const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
+                handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                    baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`, delegate: "GPU" },
+                    runningMode: "VIDEO", numHands: 1
+                });
+            } catch(e) { throw new Error("AI Load Failed"); }
         }
         function detectGesture(landmarks) {
             const lm = landmarks[0];
             const palmX = 1-lm[9].x, palmY = lm[9].y;
             const cursor = document.getElementById('hand-cursor');
             cursor.style.display='block'; cursor.style.left=(palmX*100)+'%'; cursor.style.top=(palmY*100)+'%';
-            
             const wrist = lm[0];
             const tips = [lm[8],lm[12],lm[16],lm[20]];
             const avgDist = tips.reduce((s,t) => s+Math.hypot(t.x-wrist.x,t.y-wrist.y,t.z-wrist.z),0)/4;
             const pinchDist = Math.hypot(lm[4].x-lm[8].x, lm[4].y-lm[8].y, lm[4].z-lm[8].z);
             const now = Date.now();
-            
             if (now-gestureCooldown > 800) {
-                if(avgDist < 0.28) { // Fist
-                    if(state!=='TREE'){ switchState('TREE'); gestureCooldown=now;} 
-                    cursor.style.borderColor='red';
-                }
-                else if(pinchDist < 0.08) { // Pinch
+                if(avgDist < 0.28) { if(state!=='TREE'){ switchState('TREE'); gestureCooldown=now;} cursor.style.borderColor='red'; }
+                else if(pinchDist < 0.08) { 
                     mouse.x=(palmX*2)-1; mouse.y=-(palmY*2)+1;
                     raycaster.setFromCamera(mouse,camera);
                     const intersects=raycaster.intersectObjects(photoMeshes);
                     if(intersects.length>0){ zoomToPhoto(intersects[0].object); gestureCooldown=now; }
                     cursor.style.borderColor='green';
                 }
-                else if(avgDist > 0.45 && state==='TREE'){ // Open
-                    switchState('SCATTER'); gestureCooldown=now; 
-                    cursor.style.borderColor='gold';
-                }
+                else if(avgDist > 0.45 && state==='TREE'){ switchState('SCATTER'); gestureCooldown=now; cursor.style.borderColor='gold'; }
             }
-            if(state==='SCATTER' && avgDist>0.4) {
-                gsap.to(scene.rotation, {y: (palmX-0.5)*3, x: (palmY-0.5)*0.5, duration: 1});
-            }
+            if(state==='SCATTER' && avgDist>0.4) { gsap.to(scene.rotation, {y: (palmX-0.5)*3, x: (palmY-0.5)*0.5, duration: 1}); }
         }
 
         function onWindowResize() {
@@ -445,37 +447,26 @@
                 else document.getElementById('hand-cursor').style.display = 'none';
             }
 
-            if(state === 'TREE') {
-                scene.rotation.y += 0.002;
-                scene.position.y = Math.sin(time*0.5)*0.5; 
-            }
-
+            if(state === 'TREE') { scene.rotation.y += 0.002; scene.position.y = Math.sin(time*0.5)*0.5; }
+            
+            // 灯光呼吸更柔和
             activeLights.forEach(l => {
                 const i = 0.5 + Math.sin(time * l.speed + l.phase) * 0.5;
-                l.mesh.material.color.setHSL(0.1, 0.8, 0.5 + i*0.5); 
+                l.mesh.material.color.setHSL(0.12, 0.8, 0.4 + i*0.4); 
             });
 
-            if(state === 'SCATTER') {
-                ornaments.forEach(m => {
-                    m.rotation.x += m.userData.rotSpeed.x;
-                    m.rotation.y += m.userData.rotSpeed.y;
-                });
-            }
-
+            if(state === 'SCATTER') { ornaments.forEach(m => { m.rotation.x += m.userData.rotSpeed.x; m.rotation.y += m.userData.rotSpeed.y; }); }
             if(snowSystem) {
                 const pos = snowSystem.geometry.attributes.position;
                 const vel = snowSystem.geometry.attributes.velocity;
                 for(let i=0; i<800; i++) {
                     const idx = i*3;
-                    pos.array[idx+1] -= vel.array[idx+1]; 
-                    pos.array[idx] += Math.sin(time + pos.array[idx+1]*0.1) * vel.array[idx]; 
+                    pos.array[idx+1] -= vel.array[idx+1]; pos.array[idx] += Math.sin(time + pos.array[idx+1]*0.1) * vel.array[idx];
                     if(pos.array[idx+1] < -10) pos.array[idx+1] = 60;
                 }
                 pos.needsUpdate = true;
             }
-
-            if(topStar) topStar.userData.halo.scale.setScalar(25 + Math.sin(time*3)*3);
-
+            if(topStar) topStar.userData.halo.scale.setScalar(15 + Math.sin(time*2)*2);
             composer.render();
         }
 
